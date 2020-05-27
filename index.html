@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Wars</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <h1>Star Wars</h1>
+        <div class="input-group my-5">
+            <input v-model="inputSearchPerson" type="text" class="form-control" placeholder="Search"
+                aria-label="Username" aria-describedby="basic-addon1">
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Height</th>
+                    <th scope="col">Hair</th>
+                    <th scope="col">Skin</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(person,index) in filteredPeaple">
+                    <td>{{person.name}}</td>
+                    <td>{{person.height}}</td>
+                    <td>{{person.hair_color}}</td>
+                    <td>{{person.skin_color}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                inputSearchPerson: "",
+                peaple: [],
+                page: 0
+            },
+            computed: {
+                filteredPeaple() {
+                    if (!this.inputSearchPerson.length) return this.peaple
+                    let patt = new RegExp(this.inputSearchPerson, "i");
+                    return this.peaple.filter(person => patt.test(person.name))
+                }
+            },
+            methods: {
+                async getPeaple(page) {
+                    try {
+                        this.page++
+                        let peaple = await fetch(`https://swapi.dev/api/people/?page=${this.page}`)
+                        peaple = await peaple.json()
+                        this.peaple = this.peaple.concat(peaple.results)
+                        if (page == 1) {
+                            let repeat = Math.ceil(peaple.count / peaple.results.length)
+                            for (let index = 2; index <= repeat; index++) {
+                                this.getPeaple(index)
+                            }
+                        }
+                    } catch (error) {
+                        console.log(error)
+                    }
+                }
+            },
+            mounted() {
+                this.getPeaple(1)
+            }
+        })
+    </script>
+</body>
+
+</html>

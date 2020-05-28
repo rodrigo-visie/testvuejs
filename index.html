@@ -52,25 +52,32 @@
                 }
             },
             methods: {
-                async getPeaple(page) {
+                async getAllPeaple() {
+                    let getFirstPage = await this.getPeapleByPage(1)
+                    let repeat = Math.ceil(getFirstPage.count / getFirstPage.results.length)
+                    let promises = []
+                    for (let index = 2; index <= repeat; index++) {
+                        promises.push(this.getPeapleByPage(index))
+                    }
+                    let pages = await Promise.all(promises)
+                    pages.push(getFirstPage)
+                    let peaple = pages.map(page => page.results).flat()
+                    return peaple
+
+                },
+                async getPeapleByPage(page) {
                     try {
                         this.page++
                         let peaple = await fetch(`https://swapi.dev/api/people/?page=${this.page}`)
                         peaple = await peaple.json()
-                        this.peaple = this.peaple.concat(peaple.results)
-                        if (page == 1) {
-                            let repeat = Math.ceil(peaple.count / peaple.results.length)
-                            for (let index = 2; index <= repeat; index++) {
-                                this.getPeaple(index)
-                            }
-                        }
+                        return peaple
                     } catch (error) {
                         console.log(error)
                     }
                 }
             },
-            mounted() {
-                this.getPeaple(1)
+            async mounted() {
+                this.peaple = await this.getAllPeaple()
             }
         })
     </script>
